@@ -15,7 +15,7 @@ Navigate to the project directory:
 cd tail-risk-managed-portfolios
 ```
 
-Install the required Python packages:
+Install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
