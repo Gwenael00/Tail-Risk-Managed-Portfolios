@@ -1,6 +1,6 @@
 # Tail Risk-Managed Portfolios
 
-This GitHub repository contains the Python code accompanying the master's thesis titled "Tail Risk-Managed Portfolios" by Gwenael-Theo Münker. The thesis explores the construction and performance evaluation of portfolios managed to mitigate tail risks using Value at Risk (VaR) and Conditional Value at Risk (CVaR) metrics derived from option-implied probability measures.
+This GitHub repository contains the Python code accompanying the master's thesis titled "Tail Risk-Managed Portfolios". The thesis explores the construction and performance evaluation of portfolios managed to mitigate tail risks using Value at Risk (VaR) and Conditional Value at Risk (CVaR) metrics derived from option-implied probability measures.
 
 ## Repository Structure
 
