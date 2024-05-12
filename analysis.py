@@ -157,7 +157,7 @@ def fit_RWDs(distr, df):
         # Initial parameter guesses
         initial_params = np.array([np.mean(z_ts), 0.5, np.std(z_ts)])
         # Minimize the negative log-likelihood
-        result = minimize(log_likelihood, initial_params, args=(z_ts,),method="SLSQP")
+        result = minimize(log_likelihood, initial_params, args=(z_ts,),method="BFGS")
         print(result.success)
         
         if result.success:
