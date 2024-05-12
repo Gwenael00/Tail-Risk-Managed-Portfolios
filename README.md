@@ -32,4 +32,4 @@ Execute the main script to perform the analysis:
 - `visualization.py`: Responsible for all visual outputs.
 
 ## Data
-Due to privacy and data sharing policies, actual data files are not included in this repository.
+Due to license and data sharing policies, actual data files are not included in this repository.
