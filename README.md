@@ -6,7 +6,7 @@ This GitHub repository contains the Python code accompanying the master's thesis
 Clone this repository to your local machine to get started with the project:
 
 ```bash
-git clone https://github.com/yourusername/tail-risk-managed-portfolios.git
+git clone https://github.com/Gwenael00/Tail-Risk-Managed-Portfolios.git
 ```
 
 Navigate to the project directory:
