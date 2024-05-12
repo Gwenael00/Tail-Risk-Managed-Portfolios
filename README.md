@@ -2,22 +2,21 @@
 
 This GitHub repository contains the Python code accompanying the master's thesis titled "Tail Risk-Managed Portfolios". The thesis explores the construction and performance evaluation of portfolios managed to mitigate tail risks using Value at Risk (VaR) and Conditional Value at Risk (CVaR) metrics derived from option-implied probability measures.
 
-## Repository Structure
+## Setup
+To run this project, clone the repository and install the required dependencies:
 
-- `README.md` - This file, explaining the project and navigation.
-- `risk_analysis.py` - Main Python script containing all the functions and logic for data processing, RND calculation, and portfolio management strategies.
-- `data/` - Directory containing the datasets used (note: due to privacy and data sharing policies, actual data files are not included in this repository).
+  pip install -r requirements.txt
 
-## Prerequisites
+## Usage
+Execute the main script to perform the analysis:
 
-To run the scripts, ensure you have Python 3.8 or later installed, along with the following packages:
-- `pandas` for data manipulation,
-- `numpy` for numerical calculations,
-- `matplotlib` for plotting graphs,
-- `scipy` for optimization functions,
-- `cvxpy` along with the `MOSEK` solver for optimization problems.
+  python main.py
 
-You can install the necessary Python packages using pip:
+## Modules
+- `main.py`: Orchestrates the workflow.
+- `data_processing.py`: Handles data loading and preprocessing.
+- `analysis.py`: Contains functions for statistical analysis and models.
+- `visualization.py`: Responsible for all visual outputs.
 
-```bash
-pip install pandas numpy matplotlib scipy cvxpy mosek
+## Data
+Due to privacy and data sharing policies, actual data files are not included in this repository.
