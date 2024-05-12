@@ -4,14 +4,14 @@ This GitHub repository contains the Python code accompanying the master's thesis
 
 ## Setup
 To run this project, clone the repository and install the required dependencies:
-
+  ```
   pip install -r requirements.txt
-
+  ```
 ## Usage
 Execute the main script to perform the analysis:
-
+  ```
   python main.py
-
+  ```
 ## Modules
 - `main.py`: Orchestrates the workflow.
 - `data_processing.py`: Handles data loading and preprocessing.
