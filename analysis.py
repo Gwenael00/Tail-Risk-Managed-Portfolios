@@ -103,9 +103,6 @@ def get_RNDs(df):
     
     return distr, stats
 
-
-
-
 def fit_RWDs(distr, df):
     
     distr_a = distr.iloc[:,:71].copy()
@@ -195,8 +192,6 @@ def fit_RWDs(distr, df):
     lr_1_stat, lr_1_p_value = compute_lr_test(fitted_ll, null_ll_lr1, df=1)
     print(f"LR_1 Statistic: {lr_1_stat}, p-value: {lr_1_p_value}")
 
-
-
     def rwd(rnd,gamma,S):
         denom = 0
         rwd = np.zeros(len(S))
@@ -230,7 +225,7 @@ def fit_RWDs(distr, df):
     
     rw_distr = distr_a.copy()
     for col in range(len(rw_distr.T)):
-        rw_distr[col] = rwd(rnd=distr_a[col],gamma=1.1813,S=prices_old.iloc[col]*w)
+        rw_distr[col] = rwd(rnd=distr_a[col],gamma=result.x,S=prices_old.iloc[col]*w)
         
     y_ts_rw = calculate_inverse_probability_transformations(distrb=rw_distr)
     z_ts_rw = transform_to_standard_normal_quantiles(y_ts_rw)
