@@ -181,14 +181,13 @@ def fit_RWDs(distr, df):
 
     fitted_ll = -log_likelihood(estimated_params, z_ts)  # Fitted model log-likelihood
     null_ll_lr3 = -log_likelihood([0, 0, 1], z_ts)  # Null model log-likelihood for LR_3
-    null_ll_lr1 = -log_likelihood([estimated_params[0], 0, estimated_params[2]], z_ts)    # Simplified for demonstration; adjust for your null model
+    null_ll_lr1 = -log_likelihood([estimated_params[0], 0, estimated_params[2]], z_ts)   
 
     # Compute LR_3
     lr_3_stat, lr_3_p_value = compute_lr_test(fitted_ll, null_ll_lr3, df=3)
     print(f"LR_3 Statistic: {lr_3_stat}, p-value: {lr_3_p_value}")
 
     # Compute LR_1
-    # Adjust null_ll_lr1 as needed based on your specific model for independence
     lr_1_stat, lr_1_p_value = compute_lr_test(fitted_ll, null_ll_lr1, df=1)
     print(f"LR_1 Statistic: {lr_1_stat}, p-value: {lr_1_p_value}")
 
@@ -214,7 +213,7 @@ def fit_RWDs(distr, df):
         null_ll_lr3 = -log_likelihood([0, 0, 1], z_ts)  # Null model log-likelihood for LR_3
         lr_3_stat, lr_3_p_value = compute_lr_test(fitted_ll, null_ll_lr3, df=3)
         print(f"LR_3 Statistic: {lr_3_stat}, p-value: {lr_3_p_value}")
-        null_ll_lr1 = -log_likelihood([estimated_params[0], 0, estimated_params[2]], z_ts)    # Simplified for demonstration; adjust for your null model
+        null_ll_lr1 = -log_likelihood([estimated_params[0], 0, estimated_params[2]], z_ts)   
         lr_1_stat, lr_1_p_value = compute_lr_test(fitted_ll, null_ll_lr1, df=1)
         print(f"LR_1 Statistic: {lr_1_stat}, p-value: {lr_1_p_value}")
 
