@@ -194,59 +194,47 @@ def plot_strats(strategies, strategy_performance, strategy_performance_non_cum,d
     stats_a = stats.iloc[:,:71].copy()
     dates = df['date'].unique() 
     date_differences = np.diff(dates[71:]).astype('timedelta64[D]')
-    # Convert to an array of integers representing the number of days
     date_differences = date_differences / np.timedelta64(1, 'D')
     date_differences.tolist()
     date_differences = date_differences/365
     annual_risk_free_rate = stats_a.iloc[2, :-1]
     
     returns = df['returns_strat'].unique()[2:]
-    custom_blue = (0.2, 0.4, 0.8)  # Blue-like color
-    custom_red = (0.8, 0.2, 0.4)  # Red-like color
-    # Create a figure with 4 rows and 2 columns of subplots
-    fig, axes = plt.subplots(4, 2, figsize=(15, 20))  # Adjust figsize to fit a full page in your thesis
-    axes = axes.flatten()  # Flatten the 2D array of axes for easy indexing
-    datess = pd.Series(dates[72:])  # Replace this with your actual dates series
+    custom_blue = (0.2, 0.4, 0.8)  
+    custom_red = (0.8, 0.2, 0.4)  
+    fig, axes = plt.subplots(4, 2, figsize=(15, 20))  
+    axes = axes.flatten()  
+    datess = pd.Series(dates[72:]) 
     
     for i, (strategy, cumulative_returns) in enumerate(strategy_performance.items()):
         strategy_title = str(strategy).replace('%', '\\%')
         ax = axes[i]
         ax.plot(datess, cumulative_returns*100, label="Strategy", color=custom_blue)
-        ax.plot(datess, 100*(np.cumprod(1*returns[71:]+0*(np.exp(annual_risk_free_rate*date_differences)-1)+1)-1), label="SPX", color='black')  # Market return with neutral black
+        ax.plot(datess, 100*(np.cumprod(1*returns[71:]+0*(np.exp(annual_risk_free_rate*date_differences)-1)+1)-1), label="SPX", color='black') 
         ax.plot(datess, 100*(np.cumprod(0.7*returns[71:]+0.3*(np.exp(annual_risk_free_rate*date_differences)-1)+1)-1), label="Equal-Weight", color=custom_red)
         ax.set_title(f"{strategy_title}", fontsize=14)
         ax.set_xlabel('Date', fontsize=12)
         ax.set_ylabel(r'Cumulative Return (\%)', fontsize=12)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-    
-    # Create custom handles for the shared legend
+
     strategy_line = mlines.Line2D([], [], color=custom_blue, label='Strategy')
     spx_line = mlines.Line2D([], [], color='black', label='SPX')
     equal_weight_line = mlines.Line2D([], [], color=custom_red, label='Constant-Mix')
-    
-    
-    # Place a shared legend at the bottom center of the figure
     fig.legend(handles=[strategy_line, spx_line, equal_weight_line], loc='lower center', ncol=3, fontsize=12)
-    
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust the rect to make room for the suptitle and the shared legend
-    plt.savefig("cumulative_returns_subplot.jpg", dpi=300, bbox_inches='tight')  # Save as high-resolution for inclusion in thesis
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95]) 
+    plt.savefig("cumulative_returns_subplot.jpg", dpi=300, bbox_inches='tight') 
     plt.show()
     
     
     
-    custom_blue = (0.2, 0.4, 0.8)  # Blue-like color for strategy weights
-    custom_red = (0.8, 0.2, 0.4)  # Red-like color for riskless asset weights
-    
-    # Create a figure with 4 rows and 2 columns of subplots for the weights
-    fig, axes = plt.subplots(4, 2, figsize=(15, 20))  # Adjust figsize to fit a full page in your thesis
-    axes = axes.flatten()  # Flatten the 2D array of axes for easy indexing
-    datess = pd.Series(dates[71:])  # Replace this with your actual dates series
+  
+    fig, axes = plt.subplots(4, 2, figsize=(15, 20)) 
+    axes = axes.flatten()  
+    datess = pd.Series(dates[71:]) 
     
     for i, ((measure_type, density_type, conf_level), weight_series) in enumerate(strategies.items()):
         ax = axes[i]
-        # Plot the weight of the risky asset
         ax.fill_between(datess, 0, weight_series*100, color=custom_blue, alpha=0.5)
-        # Plot the weight of the riskless asset
         ax.fill_between(datess, weight_series*100, 100, color=custom_red, alpha=0.5)
         strategy_title = str((measure_type, density_type, conf_level)).replace('%', '\\%')    
         ax.set_title(f"{strategy_title}", fontsize=14)
@@ -254,127 +242,76 @@ def plot_strats(strategies, strategy_performance, strategy_performance_non_cum,d
         ax.set_ylabel('Weight (\%)', fontsize=12)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
     
-    # Create custom handles for the shared legend
     risky_patch = mpatches.Patch(color=custom_blue, alpha=0.5, label='SPX')
     riskless_patch = mpatches.Patch(color=custom_red, alpha=0.5, label='Risk-Free Asset')
-    
-    
-    # Place a shared legend at the bottom center of the figure
     fig.legend(handles=[risky_patch, riskless_patch], loc='lower center', ncol=2, fontsize=12)
-    
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust the rect to make room for the suptitle and the shared legend
-    plt.savefig("strategy_weights_subplot.jpg", dpi=300, bbox_inches='tight')  # Save as high-resolution for inclusion in thesis
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95]) 
+    plt.savefig("strategy_weights_subplot.jpg", dpi=300, bbox_inches='tight') 
     plt.show()
     
     
-    custom_blue = (0.2, 0.4, 0.8)  # Blue-like color for strategy weights
-    custom_red = (0.8, 0.2, 0.4)  # Red-like color for riskless asset weights
-    
-    # Extract the specific strategy data
+
     specific_key = ('CVaR', 'RW', '95%')
     weight_series = strategies[specific_key]
-    
-    # Convert the dates to a Pandas Series with datetime type
-    datess = pd.to_datetime(dates[71:])  # Assuming 'dates' is already defined
     
     # Create a single plot for the specific strategy
     plt.figure(figsize=(8, 4))
     plt.fill_between(datess, 0, weight_series * 100, color=custom_blue, alpha=0.5, label='SPX')
     plt.fill_between(datess, weight_series * 100, 100, color=custom_red, alpha=0.5, label='Risk-Free Asset')
-    
-    # Formatting the plot
     plt.title("('CVaR', 'RW', '95\%')", fontsize=14)
     plt.xlabel('Date', fontsize=12)
     plt.ylabel('Weight (\%)', fontsize=12)
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-    
-    # Place the legend below the plot
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=2, fontsize=10)
-    
     plt.tight_layout()
-    plt.savefig("singleweight2.jpg", dpi=300, bbox_inches='tight')  # Save as high-resolution for inclusion in thesis
+    plt.savefig("singleweight2.jpg", dpi=300, bbox_inches='tight') 
     plt.show()
     
     
-    
-    custom_blue = (0.2, 0.4, 0.8)  # Blue-like color
-    custom_red = (0.8, 0.2, 0.4)  # Red-like color
-    
-    # Extract the specific strategy data
-    specific_key = ('CVaR', 'RW', '95%')
     cumulative_returns = strategy_performance[specific_key]
-    
-    # Convert the dates to a Pandas Series with datetime type
-    datess = pd.to_datetime(dates[72:])  # Assuming 'dates' is already defined
     
     # Create a single plot for the specific strategy
     plt.figure(figsize=(8, 4))
     plt.plot(datess, cumulative_returns*100, label=f"Strategy {specific_key}", color=custom_blue)
-    plt.plot(datess, 100*(np.cumprod(1*returns[71:]+0*(np.exp(annual_risk_free_rate*date_differences)-1)+1)-1), label="SPX", color='black')  # Market return
+    plt.plot(datess, 100*(np.cumprod(1*returns[71:]+0*(np.exp(annual_risk_free_rate*date_differences)-1)+1)-1), label="SPX", color='black')  
     plt.plot(datess, 100*(np.cumprod(0.7*returns[71:]+0.3*(np.exp(annual_risk_free_rate*date_differences)-1)+1)-1), label="Constant-Mix", color=custom_red)
-    
-    # Formatting the plot
-    strategy_title = ', '.join(specific_key).replace('%', '\\%')  # Create the title from the key tuple
+    strategy_title = ', '.join(specific_key).replace('%', '\\%')
     plt.title(f"({strategy_title})", fontsize=12)
     plt.xlabel('Date', fontsize=10)
     plt.ylabel('Cumulative Return (\%)', fontsize=10)
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-    
-    # Create custom handles for the legend
     strategy_line = mlines.Line2D([], [], color=custom_blue, label='Strategy')
     spx_line = mlines.Line2D([], [], color='black', label='SPX')
     equal_weight_line = mlines.Line2D([], [], color=custom_red, label='Constant-Mix')
-    
-    # Place the legend below the plot
     plt.legend(handles=[strategy_line, spx_line, equal_weight_line], loc='upper center', bbox_to_anchor=(0.5, -0.15), fancybox=True, shadow=True, ncol=3, fontsize=10)
-    
-    plt.tight_layout()  # Adjust the rect to make room for the title and the legend
-    plt.savefig("singlePerf2.jpg", dpi=300, bbox_inches='tight')  # Save as high-resolution for inclusion in thesis
+    plt.tight_layout() 
+    plt.savefig("singlePerf2.jpg", dpi=300, bbox_inches='tight') 
     plt.show()
     
     
-    
-    # Function to calculate drawdown
     def calculate_drawdown(cumulative_returns):
         peak = cumulative_returns.cummax()
         drawdown = (cumulative_returns - peak) / peak
-        return drawdown * 100  # Convert to percentage
-    
-    # Custom colors for the plot
-    custom_blue = (0.2, 0.4, 0.8)  # Blue-like color
-    custom_red = (0.8, 0.2, 0.4)  # Red-like color
-    
-    # Extract the specific strategy data and calculate drawdown
-    specific_key = ('CVaR', 'RW', '95%')
+        return drawdown * 100  
+        
+
     strategy_title = ', '.join(specific_key).replace('%', '\\%') 
     strategy_cumulative = strategy_performance[specific_key]
     strategy_drawdown = calculate_drawdown(strategy_cumulative+1)
-    
-    # Calculate drawdown for SPX and Equal-Weight
     spx_cumulative = np.cumprod(1*returns[71:] + 0*(np.exp(annual_risk_free_rate*date_differences) - 1) + 1) - 1
     spx_drawdown = calculate_drawdown(spx_cumulative+1)
-    
     equal_weight_cumulative = np.cumprod(0.7*returns[71:] + 0.3*(np.exp(annual_risk_free_rate*date_differences) - 1) + 1) - 1
     equal_weight_drawdown = calculate_drawdown(equal_weight_cumulative+1)
-    
-    # Convert the dates to a Pandas Series with datetime type
-    datess = pd.to_datetime(dates[72:])  # Assuming 'dates' is already defined
-    
-    # Determine the common y-axis limits
+    datess = pd.to_datetime(dates[72:])  
     min_drawdown = min(strategy_drawdown.min(), spx_drawdown.min(), equal_weight_drawdown.min())
     max_drawdown = max(strategy_drawdown.max(), spx_drawdown.max(), equal_weight_drawdown.max())
-    
-    # Create subplots for drawdowns
     fig, axes = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
-    
-    # Plot drawdowns
     axes[0].fill_between(datess, strategy_drawdown, 0, color=custom_blue, alpha=0.5, label=f"({strategy_title})")
     axes[1].fill_between(datess, spx_drawdown, 0, color='black', alpha=0.5, label="SPX")
     axes[2].fill_between(datess, equal_weight_drawdown, 0, color=custom_red, alpha=0.5, label="Constant-Mix")
     
-    # Formatting the subplots
     for ax in axes:
-        ax.set_ylim([min_drawdown, max_drawdown])  # Set the same y-axis scale for all subplots
+        ax.set_ylim([min_drawdown, max_drawdown]) 
         ax.set_ylabel('Drawdown (\%)')
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
         ax.legend(loc='lower left')
@@ -382,11 +319,8 @@ def plot_strats(strategies, strategy_performance, strategy_performance_non_cum,d
     axes[0].set_title('TMP Drawdown')
     axes[1].set_title('SPX Drawdown')
     axes[2].set_title('Constant-Mix Drawdown')
-    
-    # Set common xlabel
     axes[-1].set_xlabel('Date')
-    
-    plt.tight_layout()  # Adjust the layout
-    plt.savefig("drawdowns_subplot2.jpg", dpi=300, bbox_inches='tight')  # Save as high-resolution for inclusion in thesis
+    plt.tight_layout() 
+    plt.savefig("drawdowns_subplot2.jpg", dpi=300, bbox_inches='tight') 
     plt.show()
 
