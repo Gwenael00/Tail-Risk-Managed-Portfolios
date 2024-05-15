@@ -7,6 +7,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 
+# To match LaTeX style of thesis
 plt.style.use('seaborn-whitegrid')
 plt.rcParams['text.usetex'] = True
 plt.rcParams['font.family'] = 'serif'
@@ -16,89 +17,54 @@ def plot_datasets(df, rf, sp500):
 
     def plot_sp500():
         plt.figure(figsize=(8, 4))  
-        
-        
         plt.plot(df['date'], df['spindx'], linestyle='-', color='black')
-
         plt.xlabel('Date', fontsize=10)
-        
         plt.ylabel('Index Level', fontsize=10)
-        
         plt.gca().xaxis.set_major_locator(mdates.MonthLocator(bymonth=None, interval=15))
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-        
         plt.gcf().autofmt_xdate()
-        
         plt.savefig('sp500.jpg', dpi=300, bbox_inches='tight')
-        
         plt.show()
-        
 
     def plot_sp500_ret():
         plt.figure(figsize=(8, 4))  
-        
-        
         plt.plot(df['date'], df['returns']*100, linestyle='-', color='black')  
-        
         plt.xlabel('Date', fontsize=10)
-        
         plt.ylabel('Return (\%)', fontsize=10)
-        
         plt.gca().xaxis.set_major_locator(mdates.MonthLocator(bymonth=None, interval=15))
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-        
         plt.gcf().autofmt_xdate()
-        
         plt.savefig('sp500_rets.jpg', dpi=300, bbox_inches='tight')
-        
         plt.show()
 
-
     def plot_dates():
-
         sorted_dates = np.sort(df['date'].unique())
-        
         date_range = pd.date_range(start=sorted_dates.min(), end=sorted_dates.max(), freq='D')
         date_df = pd.DataFrame(date_range, columns=['Date'])
         date_df['EventCount'] = date_df['Date'].apply(lambda x: np.sum(sorted_dates == x))
         date_df['CumulativeEvents'] = date_df['EventCount'].cumsum()
-        
-        # Plotting
         plt.figure(figsize=(8, 4))
         plt.plot(date_df['Date'], date_df['CumulativeEvents'], marker=',', linestyle='-', color='black') 
         plt.xlabel('Date', fontsize=10)
         plt.ylabel('Number of Dates', fontsize=10)
-        
-
         plt.gca().xaxis.set_major_locator(mdates.MonthLocator(bymonth=None, interval=15))
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-
         plt.gcf().autofmt_xdate()
-        
         plt.savefig('cum_event.jpg', dpi=300, bbox_inches='tight')
-        
         plt.show()
         
-
     def plot_rf():
         plt.figure(figsize=(8, 4))
-        
         plt.plot(df['date'], df['rate']*100, linestyle='-', color='black') 
-        
-
         plt.xlabel('Date', fontsize=10)
-        
         plt.ylabel('Risk-Free Rate (\%)', fontsize=10)
-        
         plt.gca().xaxis.set_major_locator(mdates.MonthLocator(bymonth=None, interval=15))
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
-        
         plt.gcf().autofmt_xdate()
-        
         plt.savefig('rf.jpg', dpi=300, bbox_inches='tight')
-        
         plt.show()
 
+    # Generate Plots
     plot_sp500() 
     plot_sp500_ret()
     plot_dates()
@@ -111,30 +77,24 @@ def plot_distrs(df,distr,stats):
     
     def plot_options_over_time():
         plt.figure(figsize=(8, 4))  
-
-        calls = stats.iloc[0].values  # Calls data
-        puts = stats.iloc[1].values  # Puts data
+        calls = stats.iloc[0].values  
+        puts = stats.iloc[1].values  # 
         total = calls + puts  # Total volume for area plot base
-
         plt.fill_between(dates, 0, calls, color=(0.2, 0.4, 0.8), alpha=0.7, label='Call Options')
         plt.fill_between(dates, calls, total, color=(0.8, 0.2, 0.4), alpha=0.7, label='Put Options')
-
         plt.xlabel('Date', fontsize=10)
         plt.ylabel('Number of Options', fontsize=10)
-
         plt.ylim(0, 17)  
-
         plt.gca().xaxis.set_major_locator(mdates.YearLocator())
         plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
         plt.gca().xaxis.set_minor_locator(mdates.MonthLocator())
-
-        plt.gcf().autofmt_xdate()  # Beautify the x-labels for dates
-        plt.legend(fontsize=10)  # Add legend
-
-        plt.tight_layout()  # Adjust layout to make room for the legend
+        plt.gcf().autofmt_xdate()  
+        plt.legend(fontsize=10) 
+        plt.tight_layout()  
         plt.savefig('options_area_plot_adjusted.jpg', dpi=300, bbox_inches='tight')
         plt.show()
 
+    # adjust for out-of-sample
     distr_a = distr.iloc[:,:71].copy()
     #distr_a.columns = [int(col) - 71 for col in distr_a.columns]  # Convert to int and then subtract
     stats_a = stats.iloc[:,:71].copy()
@@ -145,72 +105,40 @@ def plot_distrs(df,distr,stats):
         # Generate date labels with only month and year
         date_labels = datess.dt.strftime('%m-%Y').tolist()
         time_numeric = np.arange(len(date_labels))
-        
         Z = (dens*100).values
         Y, X = np.meshgrid(time_numeric, (w-1)*100)  # Now Y is time, X is return percentages
-        
-        # Mask Z values where X (now return percentages) is outside the desired range (-30 to 30)
         Z_masked = np.where((X >= -40) & (X <= 40), Z, np.nan)
-        
-        # Define custom colormap
         colors = [(0.2, 0.4, 0.8), (0.8, 0.2, 0.4)]  # Example colors, adjust as needed
         cmap_name = 'custom_cmap'
         custom_cmap = LinearSegmentedColormap.from_list(cmap_name, colors)
-        
-        # Setting up the 3D plot using the masked Z values
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
-        
-        # Creating the surface plot with switched axes and custom colormap
         surf = ax.plot_surface(X, Y, Z_masked, cmap=custom_cmap, edgecolor='none')
-        
-        # Customizing the axes and adding a color bar
         ax.set_xlabel('Return (\%)', fontsize=14)
         ax.set_ylabel('Date', fontsize=14)
         ax.set_zlabel('Density (\%)', fontsize=14)
-        
-        # Setting the X-axis limits to match the desired return percentage range
         ax.set_xlim(-40, 40)
-        
-        # Adjusting the y-axis ticks to display time labels
         tick_interval = 24
         filtered_ticks = np.linspace(0, len(date_labels)-1, len(date_labels))[::tick_interval]
         filtered_labels = date_labels[::tick_interval]
-
         ax.set_yticks(filtered_ticks)
         ax.set_yticklabels(filtered_labels, fontsize=12)
-        
         ax.yaxis.labelpad = 20
         # Rotate the plot (example: azimuth=220, elevation=20)
         ax.view_init(azim=230, elev=20)
-
-        
         plt.savefig(name, dpi=300, bbox_inches='tight')  # Save the plot
         plt.show()
 
 
     def sumstats(df):
-        
         metrics_df = pd.DataFrame(columns=['Distribution', 'Mean', 'Volatility', 'Skewness', 'Kurtosis'])
         log_w = (w-1)*100
-        
-        for column in df.columns:
-            
+        for column in df.columns: 
             P = df[column]
-            
-            # Implied mean (mu)
             mean = np.sum(P * log_w)
-            
-            # Implied volatility (sigma)
             volatility = np.sqrt(np.sum(P * (log_w - mean)**2))
-            
-            # Implied skewness
             skewness = (np.sum(P * (log_w - mean)**3)) / (volatility**3)
-            
-            # Implied kurtosis
             kurtosis = (np.sum(P * (log_w - mean)**4)) / (volatility**4)
-            
-            # Append to DataFrame
             metrics_df = metrics_df.append({
                 'Distribution': column,
                 'Mean': mean,
@@ -218,7 +146,6 @@ def plot_distrs(df,distr,stats):
                 'Skewness': skewness,
                 'Kurtosis': kurtosis
             }, ignore_index=True)
-
         return metrics_df
 
     sumstat = sumstats(df=distr_a)
@@ -233,42 +160,29 @@ def plot_distrs(df,distr,stats):
     
     def plot_errors(distr, rw_distr, df,  z_ts , z_ts_rw):
         
-        
         def plot_standard_normal_quantiles_refined():
-            datess = pd.Series(dates[:71])  # Replace this with your actual dates series
+            datess = pd.Series(dates[:71])  
             fig, ax1 = plt.subplots(figsize=(8, 4))
-        
-            color1 = (0.2, 0.4, 0.8)  # Custom blue-like color for RWD Quantiles
-            color2 = (0.8, 0.2, 0.4)  # Custom red-like color for the difference
-        
+            color1 = (0.2, 0.4, 0.8) 
+            color2 = (0.8, 0.2, 0.4)  
             # Plot RWD Quantiles
             line1, = ax1.plot(datess, z_ts_rw, color=color1, label='RWD Quantiles')
-        
             ax1.set_xlabel('Date', color='black', fontsize=10)
             ax1.set_ylabel('RWD Quantiles', color='black', fontsize=10)
             ax1.tick_params(axis='y', labelcolor='black', labelsize=10)
             ax1.tick_params(axis='x', labelcolor='black', labelsize=10)
-        
-            # Adjust the major and minor x-axis locators and formatters
             ax1.xaxis.set_major_locator(mdates.YearLocator())
             ax1.xaxis.set_major_formatter(mdates.DateFormatter('%m-%Y'))
             ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonthday=1, interval=10))
-        
             # Plot Difference (z_ts_rw - z_ts)
             ax2 = ax1.twinx()
             line2, = ax2.plot(datess, z_ts_rw - z_ts, linestyle='dotted', color=color2, linewidth=3, label='Difference RWD vs. RND Quantiles')
             ax2.set_ylabel('Quantile Difference', color='black', fontsize=10)
             ax2.tick_params(axis='y', labelcolor='black', labelsize=10)
-        
-            # Add legend below the graph
             plt.legend(handles=[line1, line2], loc='upper center', fontsize=10, bbox_to_anchor=(0.5, -0.2), fancybox=True, shadow=True, ncol=2)
-        
             fig.tight_layout()
-            
-            # Rotate the x-axis labels for better readability
             plt.setp(ax1.xaxis.get_minorticklabels(), rotation=45)
             plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45)
-        
             plt.savefig("in_of_sample_error", dpi=300, bbox_inches='tight')
             plt.show()
         
