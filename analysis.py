@@ -24,17 +24,17 @@ def get_RNDs(df):
         
         m, n = P.shape
         
-        lambda_var = cp.Variable(m)
+        q_var = cp.Variable(m)
         
-        entr = cp.sum(cp.entr(lambda_var))
+        entr = cp.sum(cp.entr(q_var))
         
-        cons = [P.T @ lambda_var == d, cp.sum(lambda_var) == 1, lambda_var >= 0]
+        cons = [P.T @ q_var == d, cp.sum(q_var) == 1, q_var >= 0]
         
         problem = cp.Problem(cp.Maximize(entr), cons)
         problem.solve(solver=cp.MOSEK)
         print("Status:", problem.status)
     
-        return lambda_var.value
+        return q_var.value
     
     def sorter(df2):
         
@@ -59,9 +59,7 @@ def get_RNDs(df):
     
     stats = np.zeros((7,len(df['date'].unique())))
     dates = df['date'].unique() 
-    
-    dates = df['date'].unique()
-    
+
     i = 0
     for date in dates:
         try:
@@ -103,13 +101,14 @@ def get_RNDs(df):
     
     return distr, stats
 
+
+
 def fit_RWDs(distr, df):
     
     distr_a = distr.iloc[:,:71].copy()
     w = 0.5 + 0.002 * np.arange(501)
     prices = df.drop_duplicates(subset=['date'], keep='first')
     prices_new = prices['spindxex'].iloc[:71].reset_index(drop=True)
-
 
     prices_old = prices['spindx'].iloc[:71].reset_index(drop=True)
 
@@ -131,23 +130,15 @@ def fit_RWDs(distr, df):
         z_ts = norm.ppf(y_ts)
         return z_ts
 
- 
     def log_likelihood(params, data):
 
         mu, rho, sigma = params
         T = len(data)
-        
-        # Correcting the first term calculation
+
         term1 = -0.5 * np.log(2 * np.pi) - 0.5 * np.log(sigma**2 / (1 - rho**2)) - \
                 (((data[0] - mu / (1 - rho))**2) / (2*sigma**2 / (1 - rho**2)))
-
-        # Calculation of errors for t=2 to T
         errors = data[1:] - mu - rho * data[:-1]
-        
-        # Correcting the sum term calculation
         sum_term = np.sum((errors**2) / (2 * sigma**2))
-
-        # Complete log-likelihood calculation
         log_likelihood = term1 - (T - 1)/2 * np.log(2 * np.pi) - \
                          (T - 1)/2 * np.log(sigma**2) - sum_term
         
@@ -168,7 +159,6 @@ def fit_RWDs(distr, df):
         
         return result.x
 
-    # Estimate the AR(1) model
     def compute_lr_test(fitted_log_likelihood, null_log_likelihood, df):
 
         lr_stat = -2 * (null_log_likelihood - fitted_log_likelihood)
@@ -249,10 +239,8 @@ def run_strategies(distr,rw_distr,df,stats):
     w = 0.5 + 0.002 * np.arange(501)
     
     def calculate_VaR_for_dataframe( p_df, alpha):
-        # Ensure S_df is sorted from worst to best for each column
         
         def calculate_VaR( p, alpha):    
-            # Calculate cumulative probabilities
             cumulative_probabilities = []
             cumulative_sum = 0
             for probability in p:
@@ -267,55 +255,46 @@ def run_strategies(distr,rw_distr,df,stats):
             # If the loop completes without returning, then the VaR is the maximum loss (worst outcome)
             return w[-1]-1
         
-        # Calculate the VaR for each column
         VaR_results = {}
         for column in p_df.columns:
             p = p_df[column].tolist()
             VaR_results[column] = calculate_VaR( p, 1 - alpha)
 
-        # Create a new DataFrame for VaR results
         VaR_df = pd.DataFrame(VaR_results, index=["VaR"])
         
         return np.array(VaR_df).tolist()[0]
 
     def calculate_CVaR_for_dataframe( p_df, alpha):
-        # Ensure S_df is sorted from worst to best for each column
         
         def calculate_CVaR(p, alpha):
-            # Calculate cumulative probabilities
             cumulative_probabilities = []
             cumulative_sum = 0
             for probability in p:
                 cumulative_sum += probability
                 cumulative_probabilities.append(cumulative_sum)
         
-            # Find the index where the cumulative probability exceeds the confidence level
             index = 0
             for i, cum_prob in enumerate(cumulative_probabilities):
                 if cum_prob >= alpha:
                     index = i
                     break
         
-            # Calculate CVaR as the average of losses that are as bad or worse than VaR
             total_loss = 0
             total_probability = 0
             for i in range(0, index+1):
                 total_loss += p[i] * (w[i]-1)
                 total_probability += p[i]
         
-            # Handle the case where total_probability is 0 to avoid division by zero
             if total_probability > 0:
                 return (total_loss) / total_probability
             else:
-                return w[-1]-1  # If no probability mass is left after VaR, return the worst case
+                return w[-1]-1 
         
-        # Calculate the VaR for each column
         CVaR_results = {}
         for column in p_df.columns:
             p = p_df[column].tolist()
             CVaR_results[column] = calculate_CVaR( p, 1 - alpha)
 
-        # Create a new DataFrame for VaR results
         CVaR_df = pd.DataFrame(CVaR_results, index=["CVaR"])
         
         return np.array(CVaR_df).tolist()[0]
@@ -323,10 +302,11 @@ def run_strategies(distr,rw_distr,df,stats):
     def calculate_w_t_risky(target, r_f_series, measure_series):
         w_t_risky_series = []
         for r_f, alpha in zip(r_f_series, measure_series):
-            w_t_risky_series.append((target + r_f) / (alpha + r_f))
+            w_t_risky_series.append((target + r_f) / (alpha + r_f)) #here add adjustment of 0.7 for adjusten TMPs
         
         return np.clip(w_t_risky_series, 0, 1) # Ensure weights are between 0 and 1
 
+    #target calculated from insample
     targets = {
         'VaR': {'RN': {'90%': -6.9944, '95%': -9.9070},
                 'RW': {'90%': -6.3662, '95%': -9.1831}},
@@ -338,7 +318,6 @@ def run_strategies(distr,rw_distr,df,stats):
     for measure_type, conf_levels in targets.items():
         for density_type, targets_conf in conf_levels.items():
             for conf_level, target in targets_conf.items():
-                # Convert string percentage to alpha
                 alpha = float(conf_level.strip('%')) / 100
                 # Select appropriate distribution
                 p_df = distr_a if density_type == 'RN' else rw_distr
@@ -346,41 +325,29 @@ def run_strategies(distr,rw_distr,df,stats):
                 measure_series = calculate_VaR_for_dataframe(p_df, alpha) if measure_type == 'VaR' else calculate_CVaR_for_dataframe(p_df, alpha)
                 r_f_series = np.exp(stats_a.iloc[2] * 30 / 365) - 1
                 weight_series = calculate_w_t_risky((target / 100), r_f_series, measure_series)
-                # Store the results
                 strategies[(measure_type, density_type, conf_level)] = weight_series
-
-
 
     strategy_performance = {}
 
     for strategy, weights in strategies.items():
         measure_type, density_type, conf_level = strategy
-        # Shift weights to align with returns (weights calculated at start of period for next period's returns)
         aligned_weights = weights[:-1]
-        # Calculate the returns of the risky asset for the time periods
-        # Calculate the risk-free returns for the time periods
         risk_free_returns = np.exp(stats_a.iloc[2, :-1] * date_differences) - 1
         
         # Calculate the portfolio returns based on the weights
         portfolio_returns = aligned_weights* returns[71:] + (1 - aligned_weights) * risk_free_returns
-        # Calculate the cumulative return of the strategy
         cumulative_strategy_return = np.cumprod(1 + portfolio_returns) - 1
-        # Store the cumulative return
         strategy_performance[strategy] = cumulative_strategy_return
 
 
     strategy_performance_non_cum = {}
     for strategy, weights in strategies.items():
         measure_type, density_type, conf_level = strategy
-        # Shift weights to align with returns (weights calculated at start of period for next period's returns)
         aligned_weights = weights[:-1]
-        # Calculate the returns of the risky asset for the time periods
-        # Calculate the risk-free returns for the time periods
         risk_free_returns = np.exp(stats_a.iloc[2, :-1] * date_differences) - 1
         
         # Calculate the portfolio returns based on the weights
         portfolio_returns = aligned_weights* returns[71:] + (1 - aligned_weights) * risk_free_returns
-        # Store the cumulative return
         strategy_performance_non_cum[strategy] = portfolio_returns
         
         
@@ -409,10 +376,6 @@ def run_strategies(distr,rw_distr,df,stats):
         drawdown = (cumulative - peak) / peak
         return drawdown.mean()
 
-    # Assuming `returns` is a Series of the risky asset returns
-    # And assuming `stats_a.iloc[2, :-1]` contains the log returns of the risk-free rate
-    # And `date_differences` represents the time periods between returns
-
     # Prepare a dictionary to store the performance metrics
     performance_metrics = {
         'Average Return': {},
@@ -423,15 +386,12 @@ def run_strategies(distr,rw_distr,df,stats):
         'Average Drawdown': {}
     }
 
-    # Calculate the risk-free rate over the returns period
     annual_risk_free_rate = stats_a.iloc[2, :-1]
 
     # Calculate performance metrics for each strategy
     for strategy, returnss in strategy_performance_non_cum.items():
-        # Convert the strategy's non-cumulative returns into a numpy array
         returns_array = np.array(returnss)
         
-        # Calculate and store each metric
         performance_metrics['Sharpe Ratio'][strategy] = sharpe_ratio(returns_array, annual_risk_free_rate)
         performance_metrics['Sortino Ratio'][strategy] = sortino_ratio(returns_array, annual_risk_free_rate)
         performance_metrics['Max Drawdown'][strategy] = max_drawdown(returns_array)*100
