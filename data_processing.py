@@ -26,7 +26,6 @@ def preprocess_data(df, rf, sp500):
     """Preprocess data by interpolating rates and merging datasets."""
     # Interpolate 30-day maturity rate
     def interpolate_30_day_rate(group):
-        # Ensure the group is sorted by "days" for proper interpolation
         group = group.sort_values(by='days')
         
         # Check for an exact 30-day match
@@ -52,14 +51,10 @@ def preprocess_data(df, rf, sp500):
             return pd.DataFrame()
 
 
-    # Group df dataframe by 'date' and apply the interpolation function
     rf_grouped = rf.groupby('date')
     interpolated_rates = pd.concat([interpolate_30_day_rate(group) for _, group in rf_grouped])
     
-    # Merge the interpolated rates with df
     df = pd.merge(df, interpolated_rates, on='date', how='left')
-
-    # Merge
     df = pd.merge(df,sp500,on='date',how='left')
     
     #get price at maturity
@@ -81,10 +76,8 @@ def preprocess_data(df, rf, sp500):
     def filter_dates(df):
         df_dates = pd.DataFrame(df['date'].copy())
         
-        # Now, let's count how often each date occurs
         date_counts = df_dates['date'].value_counts()
         
-        # Convert date_counts Series to a DataFrame
         date_counts_df = date_counts.reset_index()
         date_counts_df.columns = ['date', 'count']
         
